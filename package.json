@@ -1,0 +1,15 @@
+{
+  "name": "factorio-midi",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/pako": "^2.0.3",
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "pako": "^2.1.0"
+  }
+}
