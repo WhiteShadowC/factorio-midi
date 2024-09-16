@@ -49,7 +49,7 @@ export type Connection = {
 export type WireConnection = {
   entity_id: number;
   /** Side of connection */
-  circuit_id: 1 | 2;
+  circuit_id?: 1 | 2;
 }
 
 export type ControlBehavior = {
