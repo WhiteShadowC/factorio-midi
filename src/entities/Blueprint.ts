@@ -1,4 +1,4 @@
-import { Position, UsableSignals } from "../types";
+import { Position, Signals } from "../types";
 
 export class Blueprint {
     version = 281479278886912;
@@ -7,7 +7,7 @@ export class Blueprint {
     icons = [
         {
             index: 1,
-            signal: UsableSignals.find((s) => s.name === 'programmable-speaker')!,
+            signal: Signals.ProgrammableSpeaker,
         },
     ];
     entities: Entity[] = [];
