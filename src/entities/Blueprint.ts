@@ -3,6 +3,7 @@ import { Position, UsableSignals } from "../types";
 export class Blueprint {
     version = 281479278886912;
     item = 'blueprint';
+    label: string;
     icons = [
         {
             index: 1,
@@ -10,6 +11,10 @@ export class Blueprint {
         },
     ];
     entities: Entity[] = [];
+
+    constructor(name: string) {
+        this.label = name;
+    }
 
     addEntity(entity: Entity): Entity {
         this.entities.push(entity);
