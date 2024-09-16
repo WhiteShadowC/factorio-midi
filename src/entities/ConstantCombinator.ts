@@ -1,9 +1,8 @@
 import { Connection, ConstantCombinatorFilter, Position, Signal } from "../types";
-import { Entity } from "./Blueprint.ts";
-import { DeciderCombinatorEntity } from "./DeciderCombinator.ts";
+import { Connected, Entity } from "./Blueprint.ts";
 
 
-export class ConstantCombinatorEntity extends Entity {
+export class ConstantCombinatorEntity extends Entity implements Connected {
     name = 'constant-combinator';
     direction = 4;
     control_behavior = {
@@ -38,29 +37,26 @@ export class ConstantCombinatorEntity extends Entity {
         return this;
     }
 
-    addConnection(entity: Entity, wire: 'red' | 'green', otherSide: 1 | 2, createOpposite = true): ConstantCombinatorEntity {
+    addConnection(
+        entity: Entity & Connected,
+        wire: 'red' | 'green',
+        _thisSide: 1 | 2,
+        otherSide: 1 | 2,
+        createOpposite = true
+    ): this {
         if (this.entity_number === 0 || entity.entity_number === 0) {
             throw new Error('Entity does not have an id yet. Cannot create connection.')
         }
 
-        if (entity instanceof ConstantCombinatorEntity) {
-            if (this.connections['1'][wire] === undefined)
-                this.connections['1'][wire] = [];
-            this.connections['1'][wire]!.push({ entity_id: entity.entity_number });
+        if (this.connections['1'][wire] === undefined)
+            this.connections['1'][wire] = [];
+        this.connections['1'][wire]!.push({
+            entity_id: entity.entity_number,
+            circuit_id: otherSide,
+        });
 
-            if (createOpposite)
-                entity.addConnection(this, wire, 1, false);
-        } else if (entity instanceof DeciderCombinatorEntity) {
-            if (this.connections['1'][wire] === undefined)
-                this.connections['1'][wire] = [];
-            this.connections['1'][wire]!.push({
-                entity_id: entity.entity_number,
-                circuit_id: otherSide,
-            });
-
-            if (createOpposite)
-                entity.addConnection(this, wire, otherSide, 1, false);
-        }
+        if (createOpposite)
+            entity.addConnection(this, wire, otherSide, 1, false);
 
         return this;
     }

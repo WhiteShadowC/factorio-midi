@@ -1,10 +1,9 @@
-import { Direction, Entity } from "./Blueprint.ts";
+import { Connected, Direction, Entity } from "./Blueprint.ts";
 import { Connection, Position, Signal } from "../types";
-import { ConstantCombinatorEntity } from "./ConstantCombinator.ts";
 
 export type Comparator = '>' | '<' | '=' | '≥' | '≤' | '≠';
 
-export class DeciderCombinatorEntity extends Entity {
+export class DeciderCombinatorEntity extends Entity implements Connected {
     name = 'decider-combinator';
     direction = Direction.Left;
     control_behavior = {
@@ -103,29 +102,26 @@ export class DeciderCombinatorEntity extends Entity {
         return this;
     }
 
-    addConnection(entity: Entity, wire: 'red' | 'green', thisSide: 1 | 2, otherSide: 1 | 2, createOpposite = true): DeciderCombinatorEntity {
+    addConnection(
+        entity: Entity & Connected,
+        wire: 'red' | 'green',
+        thisSide: 1 | 2,
+        otherSide: 1 | 2,
+        createOpposite = true
+    ): this {
         if (this.entity_number === 0 || entity.entity_number === 0) {
             throw new Error('Entity does not have an id yet. Cannot create connection.')
         }
 
-        if (entity instanceof ConstantCombinatorEntity) {
-            if (this.connections[thisSide][wire] === undefined)
-                this.connections[thisSide][wire] = [];
-            this.connections[thisSide][wire]!.push({ entity_id: entity.entity_number });
+        if (this.connections[thisSide][wire] === undefined)
+            this.connections[thisSide][wire] = [];
+        this.connections[thisSide][wire]!.push({
+            entity_id: entity.entity_number,
+            circuit_id: otherSide,
+        });
 
-            if (createOpposite)
-                entity.addConnection(this, wire, 1, false);
-        } else if (entity instanceof DeciderCombinatorEntity) {
-            if (this.connections[thisSide][wire] === undefined)
-                this.connections[thisSide][wire] = [];
-            this.connections[thisSide][wire]!.push({
-                entity_id: entity.entity_number,
-                circuit_id: otherSide,
-            });
-
-            if (createOpposite)
-                entity.addConnection(this, wire, otherSide, thisSide, false);
-        }
+        if (createOpposite)
+            entity.addConnection(this, wire, otherSide, thisSide, false);
 
         return this;
     }

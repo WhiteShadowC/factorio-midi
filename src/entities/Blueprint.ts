@@ -1,4 +1,4 @@
-import { Position, Signals } from "../types";
+import { Connection, Position, Signals } from "../types";
 
 export class Blueprint {
     version = 281479278886912;
@@ -23,6 +23,13 @@ export class Blueprint {
     }
 }
 
+export enum Direction {
+    Up = 0,
+    Right = 2,
+    Down = 4,
+    Left = 6,
+}
+
 export abstract class Entity {
     entity_number = 0;
     abstract name: string;
@@ -31,12 +38,19 @@ export abstract class Entity {
     protected constructor(position: Position) {
         this.position = position;
     }
-
 }
 
-export enum Direction {
-    Up = 0,
-    Right = 2,
-    Down = 4,
-    Left = 6,
+export interface Connected {
+    connections: {
+        '1': Connection,
+        '2'?: Connection,
+    };
+
+    addConnection(
+        entity: Entity & Connected,
+        wire: 'red' | 'green',
+        thisSide: 1 | 2,
+        otherSide: 1 | 2,
+        createOpposite: boolean
+    ): this;
 }
