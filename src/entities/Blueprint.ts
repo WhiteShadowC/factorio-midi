@@ -16,7 +16,7 @@ export class Blueprint {
         this.label = name;
     }
 
-    addEntity(entity: Entity): Entity {
+    addEntity<T extends Entity>(entity: T): T {
         this.entities.push(entity);
         entity.entity_number = this.entities.length;
         return entity;
