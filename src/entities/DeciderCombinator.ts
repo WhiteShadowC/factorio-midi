@@ -1,4 +1,4 @@
-import { Entity } from "./Blueprint.ts";
+import { Direction, Entity } from "./Blueprint.ts";
 import { Connection, Position, Signal } from "../types";
 import { ConstantCombinatorEntity } from "./ConstantCombinator.ts";
 
@@ -6,7 +6,7 @@ export type Comparator = '>' | '<' | '=' | '≥' | '≤' | '≠';
 
 export class DeciderCombinatorEntity extends Entity {
     name = 'decider-combinator';
-    direction = 6; //TODO
+    direction = Direction.Left;
     control_behavior = {
         decider_conditions: {
             first_signal: undefined as Signal | undefined,
@@ -24,6 +24,27 @@ export class DeciderCombinatorEntity extends Entity {
 
     constructor(position: Position) {
         super(position);
+    }
+
+    setDirection(direction: Direction): DeciderCombinatorEntity {
+        if (
+            (this.direction === Direction.Left || this.direction === Direction.Right)
+            && (direction === Direction.Up || direction === Direction.Down)
+        ) {
+            this.position.x -= 0.5;
+            this.position.y += 0.5;
+        }
+        if (
+            (this.direction === Direction.Up || this.direction === Direction.Down)
+            && (direction === Direction.Left || direction === Direction.Right)
+        ) {
+            this.position.x += 0.5;
+            this.position.y -= 0.5;
+        }
+
+        this.direction = direction;
+
+        return this;
     }
 
     setConditions(
