@@ -37,7 +37,7 @@ export class ConstantCombinatorEntity extends Entity {
         return this;
     }
 
-    addConnection(entity: Entity, wire: 'red' | 'green', side: 1 | 2 = 1): ConstantCombinatorEntity {
+    addConnection(entity: Entity, wire: 'red' | 'green', otherSide: 1 | 2, createOpposite = true): ConstantCombinatorEntity {
         if (this.entity_number === 0 || entity.entity_number === 0) {
             throw new Error('Entity does not have an id yet. Cannot create connection.')
         }
@@ -47,9 +47,8 @@ export class ConstantCombinatorEntity extends Entity {
                 this.connections['1'][wire] = [];
             this.connections['1'][wire]!.push({ entity_id: entity.entity_number });
 
-            if (entity.connections['1'][wire] === undefined)
-                entity.connections['1'][wire] = [];
-            entity.connections['1'][wire]!.push({ entity_id: this.entity_number });
+            if (createOpposite)
+                entity.addConnection(this, wire, 1, false);
         }
 
         return this;
