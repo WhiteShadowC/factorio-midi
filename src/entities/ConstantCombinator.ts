@@ -1,5 +1,6 @@
 import { Connection, ConstantCombinatorFilter, Position, Signal } from "../types";
 import { Entity } from "./Blueprint.ts";
+import { DeciderCombinatorEntity } from "./DeciderCombinator.ts";
 
 
 export class ConstantCombinatorEntity extends Entity {
@@ -49,6 +50,16 @@ export class ConstantCombinatorEntity extends Entity {
 
             if (createOpposite)
                 entity.addConnection(this, wire, 1, false);
+        } else if (entity instanceof DeciderCombinatorEntity) {
+            if (this.connections['1'][wire] === undefined)
+                this.connections['1'][wire] = [];
+            this.connections['1'][wire]!.push({
+                entity_id: entity.entity_number,
+                circuit_id: otherSide,
+            });
+
+            if (createOpposite)
+                entity.addConnection(this, wire, otherSide, 1, false);
         }
 
         return this;
