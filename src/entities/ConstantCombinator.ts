@@ -13,8 +13,8 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
         '1': {} as Connection,
     };
 
-    constructor(position: Position) {
-        super(position);
+    constructor(x: number, y: number) {
+        super({ x: x + 0.5, y: y + 0.5 });
     }
 
     setSignal(index: number, count: number, signal: Signal): ConstantCombinatorEntity {

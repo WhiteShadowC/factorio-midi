@@ -22,8 +22,8 @@ export class ArithmeticCombinatorEntity extends Entity implements Connected {
         '2': {} as Connection,
     };
 
-    constructor(position: Position) {
-        super(position);
+    constructor(x: number, y: number) {
+        super({ x: x + 1, y: y + 0.5 });
     }
 
     setDirection(direction: Direction): this {

@@ -45,6 +45,10 @@ export class ProgrammableSpeakerEntity extends Entity implements Connected {
         alert_message: '',
     };
 
+    constructor(x: number, y: number) {
+        super({ x: x + 0.5, y: y + 0.5 });
+    }
+
     setInstrument(instrument: Instrument): this {
         this.control_behavior.circuit_parameters.instrument_id = instrument;
 
