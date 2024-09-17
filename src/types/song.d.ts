@@ -2,6 +2,7 @@ export type Song = {
   name: string;
   bpm: number;
   subdivision: number;
+  length: number;
   tracks: Track[];
 };
 
