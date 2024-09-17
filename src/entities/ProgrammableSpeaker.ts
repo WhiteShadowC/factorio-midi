@@ -89,6 +89,12 @@ export class ProgrammableSpeakerEntity extends Entity implements Connected {
         return this;
     }
 
+    setPolyphony(polyphony: boolean): this {
+        this.parameters.allow_polyphony = polyphony;
+
+        return this;
+    }
+
     addConnection(
         entity: Entity & Connected,
         wire: 'red' | 'green',
