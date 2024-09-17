@@ -17,6 +17,12 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
         super({ x: x + 0.5, y: y + 0.5 });
     }
 
+    setOn(on: boolean): ConstantCombinatorEntity {
+        this.control_behavior.is_on = on;
+
+        return this;
+    }
+
     setSignal(index: number, count: number, signal: Signal): ConstantCombinatorEntity {
         if (index < 1 || index > 20) {
             throw new RangeError(`Supplied index (${index}) is out of bounds.`);
