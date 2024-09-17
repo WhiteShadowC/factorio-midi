@@ -252,7 +252,7 @@ export const Signals: Record<string, Signal> = {
     SignalGreen: { 'type': 'virtual', 'name': 'signal-green' },
     SignalBlue: { 'type': 'virtual', 'name': 'signal-blue' },
     SignalYellow: { 'type': 'virtual', 'name': 'signal-yellow' },
-    SignalPink: { 'type': 'virtual', 'name': 'signal-Pink' },
+    SignalPink: { 'type': 'virtual', 'name': 'signal-pink' },
     SignalCyan: { 'type': 'virtual', 'name': 'signal-cyan' },
     SignalWhite: { 'type': 'virtual', 'name': 'signal-white' },
     SignalGrey: { 'type': 'virtual', 'name': 'signal-grey' },
