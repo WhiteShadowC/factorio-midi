@@ -21,6 +21,16 @@ export class Blueprint {
         entity.entity_number = this.entities.length;
         return entity;
     }
+
+    getEntityAt(x: number, y: number): Entity | undefined {
+        return this.entities.find(e =>
+            (e.position.x === x + 0.5 && e.position.y === y + 0.5) ||
+            (e.position.x === x + 1 && e.position.y === y + 0.5) ||
+            (e.position.x === x + 0.5 && e.position.y === y + 1) ||
+            (e.position.x === x && e.position.y === y + 0.5) ||
+            (e.position.x === x + 0.5 && e.position.y === y)
+        );
+    }
 }
 
 export enum Direction {
