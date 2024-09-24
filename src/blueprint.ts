@@ -66,25 +66,25 @@ export function generate(song: Song): string {
 
     const noteModuloArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(5, 0))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL, '%', Signals.SignalGrey)
+        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL, '%', Signals.SignalInfo)
         .addConnection(noteTickArithmetic, 'red', 1, 2);
     const noteShiftAmountArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(6, 1))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalGrey, 6, '*', Signals.SignalGrey)
+        .setConditions(Signals.SignalInfo, 6, '*', Signals.SignalInfo)
         .addConnection(noteModuloArithmetic, 'red', 1, 2);
     const noteShifterArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(7, 0))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalEach, Signals.SignalGrey, '>>', Signals.SignalEach)
+        .setConditions(Signals.SignalEach, Signals.SignalInfo, '>>', Signals.SignalEach)
         .addConnection(noteShiftAmountArithmetic, 'red', 1, 2)
         .addConnection(firstNoteSwitchDecider, 'green', 1, 2);
     const pulseArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(9, 0))
         .setDirection(Direction.Down)
-        .setConditions(Signals.SignalDot, 0, '+', Signals.SignalWhite)
+        .setConditions(Signals.SignalDot, 0, '+', Signals.SignalInfo)
         .addConnection(noteModuloArithmetic, 'red', 1, 1)
         .addConnection(noteShifterArithmetic, 'green', 2, 2);
     const pulseDecider = blueprint.addEntity(new DeciderCombinatorEntity(10, 0))
         .setDirection(Direction.Down)
-        .setConditions(Signals.SignalDot, Signals.SignalWhite, '≠', Signals.SignalEverything, true)
+        .setConditions(Signals.SignalDot, Signals.SignalInfo, '≠', Signals.SignalEverything, true)
         .addConnection(pulseArithmetic, 'red', 1, 1)
         .addConnection(pulseArithmetic, 'green', 1, 2);
     const delayArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(11, 0))
@@ -94,18 +94,18 @@ export function generate(song: Song): string {
 
     const signalPickerDivideArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(6, 2))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL, '/', Signals.SignalYellow)
+        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL, '/', Signals.SignalInfo)
         .addConnection(noteLoadSwitcherArithmetic, 'red', 1, 1);
     const signalPickerModuloArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(6, 3))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalYellow, SIGNALS_PER_COMBINATOR, '%', Signals.SignalYellow)
+        .setConditions(Signals.SignalInfo, SIGNALS_PER_COMBINATOR, '%', Signals.SignalInfo)
         .addConnection(signalPickerDivideArithmetic, 'red', 1, 2);
     const additionHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(8, 3))
-        .setSignal(1, 1, Signals.SignalYellow)
+        .setSignal(1, 1, Signals.SignalInfo)
         .addConnection(firstNoteKeyConstant, 'green', 1, 1);
     const signalFilterDecider = blueprint.addEntity(new DeciderCombinatorEntity(8, 1))
         .setDirection(Direction.Up)
-        .setConditions(Signals.SignalEach, Signals.SignalYellow, '=', Signals.SignalEach, false)
+        .setConditions(Signals.SignalEach, Signals.SignalInfo, '=', Signals.SignalEach, false)
         .addConnection(signalPickerModuloArithmetic, 'red', 1, 2)
         .addConnection(additionHelperConstant, 'green', 1, 1);
     const signalFilterArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(9, 2))

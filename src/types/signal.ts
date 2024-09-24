@@ -513,4 +513,13 @@ export const UsableSignals: Signal[] = [
     Signals.SignalX,
     Signals.SignalY,
     Signals.SignalZ,
+    Signals.SignalRed,
+    Signals.SignalGreen,
+    Signals.SignalBlue,
+    Signals.SignalYellow,
+    Signals.SignalPink,
+    Signals.SignalCyan,
+    Signals.SignalWhite,
+    Signals.SignalGrey,
+    Signals.SignalBlack,
 ];
