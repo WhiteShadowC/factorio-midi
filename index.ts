@@ -1,5 +1,5 @@
 import MidiManager, { MidiSetTempoEvent, MidiTimeSignatureEvent } from "midi-file";
-import { Blueprint } from "./src/entities";
+import { Blueprint, BlueprintBook } from "./src/entities";
 import { Instrument, Note, Song, Track } from "./src/types";
 import * as BlueprintConstructor from './src/blueprint';
 import * as path from "node:path";
@@ -26,7 +26,7 @@ try {
 }
 console.log(exportBlueprint(await blueprint));
 
-function exportBlueprint(blueprint: Blueprint): string {
+function exportBlueprint(blueprint: Blueprint | BlueprintBook): string {
     return '0' + Buffer.from(
         pako.deflate(
             JSON.stringify(blueprint)
