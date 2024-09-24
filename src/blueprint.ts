@@ -129,7 +129,8 @@ export function generate(song: Song): string {
 
 function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
     let previous: Entity & Connected = blueprint.getEntityAt(5, 2) as ArithmeticCombinatorEntity;
-    for (let i = 0; i < Math.ceil(tracks[0].notes.length / (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR)); i++) {
+    const maxNotesInTrack = tracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
+    for (let i = 0; i < Math.ceil(maxNotesInTrack / (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR)); i++) {
         let current = blueprint.addEntity(new DeciderCombinatorEntity(4 - i, 2))
             .setDirection(Direction.Up)
             .setConditions(Signals.SignalCheck, i, '=', Signals.SignalEverything, true);
@@ -191,8 +192,8 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
 
         let combinatorIndex = 1;
         let combinator: ConstantCombinatorEntity;
-        for (let noteIndex = 0; noteIndex < track.notes.length; noteIndex++) {
-            const note = track.notes[noteIndex];
+        for (let noteIndex = 0; noteIndex < maxNotesInTrack; noteIndex++) {
+            const note = track.notes[noteIndex] ?? 0;
 
             if (noteIndex % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) === 0) {
                 combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
