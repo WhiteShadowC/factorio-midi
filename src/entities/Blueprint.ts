@@ -1,29 +1,31 @@
 import { Connection, Position, Signals } from "../types";
 
 export class Blueprint {
-    version = 281479278886912;
-    item = 'blueprint';
-    label: string;
-    icons = [
-        {
-            index: 1,
-            signal: Signals.ProgrammableSpeaker,
-        },
-    ];
-    entities: Entity[] = [];
+    blueprint = {
+        version: 281479278886912,
+        item: 'blueprint',
+        label: '',
+        icons: [
+            {
+                index: 1,
+                signal: Signals.ProgrammableSpeaker,
+            },
+        ],
+        entities: [] as Entity[],
+    };
 
     constructor(name: string) {
-        this.label = name;
+        this.blueprint.label = name;
     }
 
     addEntity<T extends Entity>(entity: T): T {
-        this.entities.push(entity);
-        entity.entity_number = this.entities.length;
+        this.blueprint.entities.push(entity);
+        entity.entity_number = this.blueprint.entities.length;
         return entity;
     }
 
     getEntityAt(x: number, y: number): Entity | undefined {
-        return this.entities.find(e =>
+        return this.blueprint.entities.find(e =>
             (e.position.x === x + 0.5 && e.position.y === y + 0.5) ||
             (e.position.x === x + 1 && e.position.y === y + 0.5) ||
             (e.position.x === x + 0.5 && e.position.y === y + 1) ||

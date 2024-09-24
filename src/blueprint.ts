@@ -18,7 +18,7 @@ const SIGNALS_PER_COMBINATOR = 20;
 function exportBlueprint(blueprint: Blueprint): string {
     return '0' + Buffer.from(
         pako.deflate(
-            JSON.stringify({ blueprint })
+            JSON.stringify(blueprint)
         )
     ).toString('base64');
 }
