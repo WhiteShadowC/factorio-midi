@@ -1,3 +1,3 @@
 export * from './signal.ts';
-export type * from './song.d.ts';
+export * from './song.ts';
 export type * from './blueprint.d.ts';
