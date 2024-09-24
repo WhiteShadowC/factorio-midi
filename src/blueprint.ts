@@ -1,4 +1,3 @@
-import pako from 'pako';
 import { Signals, Song, Track, UsableSignals } from './types';
 import {
     ArithmeticCombinatorEntity,
@@ -15,15 +14,7 @@ import {
 const NOTES_PER_SIGNAL = 5;
 const SIGNALS_PER_COMBINATOR = 20;
 
-function exportBlueprint(blueprint: Blueprint): string {
-    return '0' + Buffer.from(
-        pako.deflate(
-            JSON.stringify(blueprint)
-        )
-    ).toString('base64');
-}
-
-export function generate(song: Song): string {
+export function generate(song: Song): Blueprint {
     const blueprint = new Blueprint(song.name);
     const controlConstant = blueprint.addEntity(new ConstantCombinatorEntity(0, 0))
         .setOn(false)
@@ -125,7 +116,7 @@ export function generate(song: Song): string {
         .addConnection(activeSignalFilterDecider, 'red', 1, 2)
         .addConnection(firstNoteFilterDecider, 'red', 2, 1);
 
-    return exportBlueprint(blueprint);
+    return blueprint;
 }
 
 function generateNotes(blueprint: Blueprint, tracks: Track[]): void {

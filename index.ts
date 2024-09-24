@@ -1,7 +1,9 @@
 import MidiManager, { MidiSetTempoEvent, MidiTimeSignatureEvent } from "midi-file";
+import { Blueprint } from "./src/entities";
 import { Instrument, Note, Song, Track } from "./src/types";
 import * as BlueprintConstructor from './src/blueprint';
 import * as path from "node:path";
+import pako from "pako";
 
 const PIANO_MIDI_NOTE_OFFSET = 40;
 const BASS_MIDI_NOTE_OFFSET = 28;
@@ -22,9 +24,17 @@ try {
     console.error(e);
     process.exit(1);
 }
-console.log(await blueprint);
+console.log(exportBlueprint(await blueprint));
 
-async function convertMidiFile(filePath: string): Promise<string> {
+function exportBlueprint(blueprint: Blueprint): string {
+    return '0' + Buffer.from(
+        pako.deflate(
+            JSON.stringify(blueprint)
+        )
+    ).toString('base64');
+}
+
+async function convertMidiFile(filePath: string): Promise<Blueprint> {
     const midi = MidiManager.parseMidi(Buffer.from(await Bun.file(filePath).arrayBuffer()))
 
     // convert to internal structure
