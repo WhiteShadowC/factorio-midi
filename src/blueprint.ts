@@ -8,6 +8,7 @@ import {
     DeciderCombinatorEntity,
     Direction,
     Entity,
+    Instrument,
     ProgrammableSpeakerEntity
 } from "./entities";
 
@@ -175,13 +176,17 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
             .setConditions(Signals.SignalEach, 0b00111111, 'AND', Signals.SignalCheck)
             .addConnection(filterDecider, 'red', 1, 2);
 
-        blueprint.addEntity(new ProgrammableSpeakerEntity(11, 4 + trackIndex))
+        const speaker = blueprint.addEntity(new ProgrammableSpeakerEntity(11, 4 + trackIndex))
             .setGlobalPlayback(true)
             .setPolyphony(true)
             .setSignalValueIsPitch(true)
             .setFirstSignal(Signals.SignalCheck)
             .setInstrument(track.instrument)
             .addConnection(bitMaskArithmetic, 'red', 1, 2);
+        if (track.instrument === Instrument.Sawtooth)
+            speaker.setVolume(0.8);
+        else if (track.instrument === Instrument.Square)
+            speaker.setVolume(0.5);
 
         if (trackIndex > 0) {
             keyConstant.addConnection(previousKeyConstant!, 'green', 1, 1);
