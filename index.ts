@@ -3,6 +3,8 @@ import { Blueprint, BlueprintBook } from "./src/entities";
 import { Instrument, Note, Song, Track } from "./src/types";
 import * as BlueprintConstructor from './src/blueprint';
 import * as path from "node:path";
+import { readdir } from "node:fs/promises";
+import { BunFile } from "bun";
 import pako from "pako";
 
 const PIANO_MIDI_NOTE_OFFSET = 40;
@@ -17,14 +19,53 @@ const STEEL_DRUM_MIDI_NOTE_OFFSET = 40;
 const OCTAVE = 12;
 
 const midiFilePath = Bun.argv[2];
-let blueprint;
+
+let blueprint: Blueprint | BlueprintBook | null | undefined;
 try {
-    blueprint = convertMidiFile(midiFilePath);
+    blueprint = await convertFileOrFolder(midiFilePath, 1);
 } catch (e) {
     console.error(e);
     process.exit(1);
 }
-console.log(exportBlueprint(await blueprint));
+if (blueprint === null) {
+    console.log('Nothing to convert.');
+    process.exit(0);
+}
+
+console.log(exportBlueprint(blueprint!));
+
+async function convertFileOrFolder(filePath: string, recursiveDepth: number = 0): Promise<Blueprint | BlueprintBook | null> {
+    const file = Bun.file(filePath);
+
+    if (await file.exists()) {
+        return convertMidiFile(file).catch((e) => {
+            return null;
+        });
+    }
+
+    if (recursiveDepth >= 0) {
+        const files = (await readdir(filePath).catch(() => []))
+            .sort()
+            .map(file => path.join(filePath, file))
+            .filter((_v, i) => i < 500);
+        const blueprints = (await Promise.all(
+            files.map(file => convertFileOrFolder(file, recursiveDepth - 1))
+        )).filter(bp => bp !== null) as (Blueprint | BlueprintBook)[];
+
+        if (blueprints.length === 0) {
+            return null;
+        }
+
+        const book = new BlueprintBook(path.parse(filePath).name);
+        for (let bp of blueprints) {
+            book.addBlueprint(bp);
+        }
+
+        return book;
+    }
+
+    return null;
+}
 
 function exportBlueprint(blueprint: Blueprint | BlueprintBook): string {
     return '0' + Buffer.from(
@@ -34,8 +75,8 @@ function exportBlueprint(blueprint: Blueprint | BlueprintBook): string {
     ).toString('base64');
 }
 
-async function convertMidiFile(filePath: string): Promise<Blueprint> {
-    const midi = MidiManager.parseMidi(Buffer.from(await Bun.file(filePath).arrayBuffer()))
+async function convertMidiFile(file: BunFile): Promise<Blueprint> {
+    const midi = MidiManager.parseMidi(Buffer.from(await file.arrayBuffer()))
 
     // convert to internal structure
     const tempoEvents = midi.tracks.flatMap(t => t.filter(e => e.type === 'setTempo') as MidiSetTempoEvent[]);
@@ -46,7 +87,7 @@ async function convertMidiFile(filePath: string): Promise<Blueprint> {
     }
 
     const song: Song = {
-        name: path.parse(filePath).name,
+        name: path.parse(file.name!).name,
         bpm: Math.round(60_000_000 / tempoEvents[0].microsecondsPerBeat),
         subdivision: timeSignatureEvents[0].denominator,
         length: 0,
