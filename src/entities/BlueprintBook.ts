@@ -5,7 +5,7 @@ type IndexedBlueprint = (Blueprint | BlueprintBook) & { index: number };
 
 export class BlueprintBook {
     blueprint_book = {
-        version: 281479278886912,
+        version: 562949953945601,
         item: 'blueprint-book',
         label: '',
         icons: [

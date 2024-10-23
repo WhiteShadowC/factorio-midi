@@ -2,7 +2,7 @@ import { Connection, Position, Signals } from "../types";
 
 export class Blueprint {
     blueprint = {
-        version: 281479278886912,
+        version: 562949953945601,
         item: 'blueprint',
         label: '',
         icons: [
