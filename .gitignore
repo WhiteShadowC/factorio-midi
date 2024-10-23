@@ -3,3 +3,8 @@ node_modules/
 
 # IntelliJ based IDEs
 .idea
+
+# Data folders
+output/
+midi/
+blueprints/
