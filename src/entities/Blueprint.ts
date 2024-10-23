@@ -37,9 +37,9 @@ export class Blueprint {
 
 export enum Direction {
     Up = 0,
-    Right = 2,
-    Down = 4,
-    Left = 6,
+    Right = 4,
+    Down = 8,
+    Left = 12,
 }
 
 export abstract class Entity {

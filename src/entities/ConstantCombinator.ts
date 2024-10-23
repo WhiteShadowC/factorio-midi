@@ -1,5 +1,5 @@
 import { Connection, Quality, Signal } from "../types";
-import { Connected, Entity } from "./Blueprint.ts";
+import { Connected, Direction, Entity } from "./Blueprint.ts";
 
 type ConstantCombinatorFilter = {
     index: number;
@@ -12,7 +12,7 @@ type ConstantCombinatorFilter = {
 
 export class ConstantCombinatorEntity extends Entity implements Connected {
     name = 'constant-combinator';
-    direction = 4;
+    direction = Direction.Down;
     control_behavior = {
         is_on: true,
         sections: {
