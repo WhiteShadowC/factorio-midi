@@ -177,13 +177,11 @@ function rangeFitsInFactorio(program: number, lowest: number, highest: number): 
         if (octaves <= 4) {
             return true;
         }
-    }
-    else if (program <= 119) {
+    } else if (program <= 119) {
         if (octaves <= 3) {
             return true;
         }
-    }
-    else {
+    } else {
         return true;
     }
 
@@ -196,7 +194,15 @@ function rangeFitsInFactorio(program: number, lowest: number, highest: number): 
  * Drum Kit notes taken from https://musescore.org/sites/musescore.org/files/General%20MIDI%20Standard%20Percussion%20Set%20Key%20Map.pdf
  * and from https://miditorio.com.
  */
-function convertNote(channel: number, program: number, note: number, octaveOffset: number = 0): { instrument: Instrument, note: Note } {
+function convertNote(
+    channel: number,
+    program: number,
+    note: number,
+    octaveOffset: number = 0
+): {
+    instrument: Instrument,
+    note: Note
+} {
     // Drum Kit
     if (channel === 9) {
         let convertedNote;
