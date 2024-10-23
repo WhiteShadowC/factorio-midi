@@ -1,13 +1,28 @@
-import { Connection, ConstantCombinatorFilter, Position, Signal } from "../types";
+import { Connection, Quality, Signal } from "../types";
 import { Connected, Entity } from "./Blueprint.ts";
 
+type ConstantCombinatorFilter = {
+    index: number;
+    type: Signal['type'];
+    name: string;
+    quality: Quality;
+    comparator: '=';
+    count: number;
+}
 
 export class ConstantCombinatorEntity extends Entity implements Connected {
     name = 'constant-combinator';
     direction = 4;
     control_behavior = {
         is_on: true,
-        filters: [] as ConstantCombinatorFilter[],
+        sections: {
+            sections: [
+                {
+                    index: 1,
+                    filters: [] as ConstantCombinatorFilter[],
+                },
+            ],
+        },
     };
     connections = {
         '1': {} as Connection,
@@ -23,21 +38,27 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
         return this;
     }
 
-    setSignal(index: number, count: number, signal: Signal): ConstantCombinatorEntity {
-        if (index < 1 || index > 20) {
+    setSignal(index: number, count: number, signal: Signal, quality: Quality = 'normal'): ConstantCombinatorEntity {
+        if (index < 1) {
             throw new RangeError(`Supplied index (${index}) is out of bounds.`);
         }
 
-        let i = this.control_behavior.filters.findIndex(f => f.index === index);
+        let i = this.control_behavior.sections.sections[0].filters.findIndex(f => f.index === index);
         if (i === -1) {
-            this.control_behavior.filters.push({
-                signal: signal,
-                count: count,
+            this.control_behavior.sections.sections[0].filters.push({
                 index: index,
+                type: signal.type,
+                name: signal.name,
+                quality: quality,
+                comparator: '=',
+                count: count,
             } as ConstantCombinatorFilter);
         } else {
-            this.control_behavior.filters[i].signal = signal;
-            this.control_behavior.filters[i].count = count;
+            if (signal.type) this.control_behavior.sections.sections[0].filters[i].type = signal.type;
+            else delete this.control_behavior.sections.sections[0].filters[i].type;
+            this.control_behavior.sections.sections[0].filters[i].name = signal.name;
+            this.control_behavior.sections.sections[0].filters[i].quality = quality;
+            this.control_behavior.sections.sections[0].filters[i].count = count;
         }
 
         return this;

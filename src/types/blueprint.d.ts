@@ -20,9 +20,3 @@ export type WireConnection = {
   /** Side of connection */
   circuit_id?: 1 | 2;
 }
-
-export type ConstantCombinatorFilter = {
-  signal: Signal;
-  count: number;
-  index: number;
-}

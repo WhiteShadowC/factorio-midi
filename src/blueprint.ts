@@ -154,8 +154,8 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
             .forEach(f => keyConstant.setSignal(f.index, f.count, f.signal));
 
         const filterHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(6, 4 + trackIndex));
-        filterHelperConstant.control_behavior.filters = structuredClone(keyConstant.control_behavior.filters);
-        filterHelperConstant.control_behavior.filters.forEach(f => f.count = -2147483648);
+        filterHelperConstant.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
+        filterHelperConstant.control_behavior.sections.sections[0].filters.forEach(f => f.count = -2147483648);
 
         const filterDecider = blueprint.addEntity(new DeciderCombinatorEntity(7, 4 + trackIndex))
             .setDirection(Direction.Right)
@@ -193,8 +193,8 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
 
             if (noteIndex % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) === 0) {
                 combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
-                combinator.control_behavior.filters = structuredClone(keyConstant.control_behavior.filters);
-                combinator.control_behavior.filters.forEach(f => f.count = 0);
+                combinator.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
+                combinator.control_behavior.sections.sections[0].filters.forEach(f => f.count = 0);
                 const entity = blueprint.getEntityAt(5 - combinatorIndex, 4 + trackIndex - 1);
                 if (entity && typeof (entity as Entity & Connected)['addConnection'] === 'function') {
                     combinator.addConnection(entity as Entity & Connected, 'green', 1, 1);
@@ -204,7 +204,7 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
             if (note === 0) continue;
 
             const channelIndex = Math.floor(noteIndex % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) / NOTES_PER_SIGNAL);
-            combinator!.control_behavior.filters.find(f => f.index === channelIndex + 1)!.count += note << (noteIndex % NOTES_PER_SIGNAL * 6);
+            combinator!.control_behavior.sections.sections[0].filters.find(f => f.index === channelIndex + 1)!.count += note << (noteIndex % NOTES_PER_SIGNAL * 6);
         }
     }
 }
