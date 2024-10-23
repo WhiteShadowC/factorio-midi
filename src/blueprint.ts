@@ -168,7 +168,7 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
             .addConnection(filterDecider, 'red', 1, 2);
 
         const speaker = blueprint.addEntity(new ProgrammableSpeakerEntity(11, 4 + trackIndex))
-            .setGlobalPlayback(true)
+            .setPlaybackMode('global')
             .setPolyphony(true)
             .setSignalValueIsPitch(true)
             .setFirstSignal(Signals.SignalCheck)

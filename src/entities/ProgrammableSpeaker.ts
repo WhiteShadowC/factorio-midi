@@ -17,6 +17,8 @@ export enum Instrument {
     SteelDrum = 11,
 }
 
+export type PlaybackMode = 'local' | 'surface' | 'global';
+
 export class ProgrammableSpeakerEntity extends Entity implements Connected {
     name = 'programmable-speaker';
     control_behavior = {
@@ -36,7 +38,7 @@ export class ProgrammableSpeakerEntity extends Entity implements Connected {
     };
     parameters = {
         playback_volume: 1,
-        playback_globally: false,
+        playback_mode: 'local' as PlaybackMode,
         allow_polyphony: false,
     };
     alert_parameters = {
@@ -83,8 +85,8 @@ export class ProgrammableSpeakerEntity extends Entity implements Connected {
         return this;
     }
 
-    setGlobalPlayback(playGlobally: boolean): this {
-        this.parameters.playback_globally = playGlobally;
+    setPlaybackMode(playbackMode: PlaybackMode): this {
+        this.parameters.playback_mode = playbackMode;
 
         return this;
     }
