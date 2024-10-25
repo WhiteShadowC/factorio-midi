@@ -26,6 +26,7 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
             ],
         },
     };
+    player_description?: string;
     connections = {
         '1': {} as Connection,
     };
@@ -36,6 +37,16 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
 
     setOn(on: boolean): ConstantCombinatorEntity {
         this.control_behavior.is_on = on;
+
+        return this;
+    }
+
+    setDescription(description: string | null): ConstantCombinatorEntity {
+        if (description === null) {
+            delete this.player_description;
+        } else {
+            this.player_description = description;
+        }
 
         return this;
     }
