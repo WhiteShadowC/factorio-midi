@@ -18,6 +18,7 @@ export function generate(song: Song): Blueprint {
     const blueprint = new Blueprint(song.name);
     const controlConstant = blueprint.addEntity(new ConstantCombinatorEntity(0, 0))
         .setOn(false)
+        .setDescription(song.name)
         .setSignal(1, 1, Signals.SignalDot)
         .setSignal(4, song.subdivision, Signals.SignalT)
         .setSignal(5, song.bpm, Signals.SignalInfo)
