@@ -215,27 +215,45 @@ function generateNotes(
         previousFilterDecider = filterDecider;
 
         let combinatorIndex = 1;
-        let combinator: ConstantCombinatorEntity;
+        let combinator!: ConstantCombinatorEntity;
         for (let signalIndex = 0; signalIndex < track.notes.length; signalIndex++) {
             const signal = track.notes[signalIndex] ?? 0;
 
             if (signalIndex % output.signalsPerCombinator === 0) {
-                combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
-                const entity = blueprint.getEntityAt(5 - combinatorIndex, 4 + trackIndex - 1);
-                if (entity && typeof (entity as Entity & Connected)['addConnection'] === 'function') {
-                    combinator.addConnection(entity as Entity & Connected, 'green', 1, 1);
+                if (trackIndex === 0) {
+                    combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4));
+                    const entity = blueprint.getEntityAt(5 - combinatorIndex, 3);
+                    if (entity && typeof (entity as Entity & Connected)['addConnection'] === 'function') {
+                        combinator.addConnection(entity as Entity & Connected, 'green', 1, 1);
+                    }
+                } else {
+                    let found = false;
+                    for (let i = trackIndex - 1; !found && i >= 0; i--) {
+                        combinator = blueprint.getEntityAt(5 - combinatorIndex, 4 + i) as ConstantCombinatorEntity;
+                        if (combinator) found = true;
+                    }
                 }
                 combinatorIndex++;
             }
             if (signal === 0) continue;
+
+            if (combinator.getAllSignals().length >= MAX_SIGNALS_PER_CONSTANT_COMBINATOR) {
+                combinator = blueprint.addEntity(
+                    new ConstantCombinatorEntity(
+                        Math.floor(combinator.position.x),
+                        Math.floor(combinator.position.y) + 1
+                    ),
+                )
+                    .addConnection(combinator, 'green', 1, 1);
+            }
 
             const keySignal = keyConstant.getAllSignals()
                 .find(signal => signal.count === (signalIndex % output.signalsPerCombinator) + 1)!;
             const sig: Signal = { name: keySignal.name };
             if (keySignal.type) sig.type = keySignal.type;
 
-            combinator!.setSignal(
-                combinator!.getAllSignals().length + 1,
+            combinator.setSignal(
+                combinator.getAllSignals().length + 1,
                 signal,
                 sig,
             );
