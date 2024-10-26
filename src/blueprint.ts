@@ -8,11 +8,11 @@ import {
     Direction,
     Entity,
     Instrument,
+    MAX_SIGNALS_PER_CONSTANT_COMBINATOR,
     ProgrammableSpeakerEntity
 } from "./entities";
 
 const NOTES_PER_SIGNAL = 5;
-const SIGNALS_PER_COMBINATOR = 20;
 
 export function generate(song: Song): Blueprint {
     const blueprint = new Blueprint(song.name);
@@ -48,13 +48,14 @@ export function generate(song: Song): Blueprint {
         .addConnection(tpnArithmetic, 'green', 1, 2);
 
     const {
+        signalsPerCombinator,
         firstNoteSwitchDecider,
         firstNoteKeyConstant,
         firstNoteFilterDecider
     } = generateNotes(blueprint, song.tracks);
     const noteLoadSwitcherArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(5, 2))
         .setDirection(Direction.Down)
-        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR, '/', Signals.SignalCheck)
+        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL * signalsPerCombinator, '/', Signals.SignalCheck)
         .addConnection(noteTickArithmetic, 'red', 1, 2)
         .addConnection(firstNoteSwitchDecider, 'red', 2, 1);
 
@@ -92,7 +93,7 @@ export function generate(song: Song): Blueprint {
         .addConnection(noteLoadSwitcherArithmetic, 'red', 1, 1);
     const signalPickerModuloArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(6, 3))
         .setDirection(Direction.Right)
-        .setConditions(Signals.SignalInfo, SIGNALS_PER_COMBINATOR, '%', Signals.SignalInfo)
+        .setConditions(Signals.SignalInfo, signalsPerCombinator, '%', Signals.SignalInfo)
         .addConnection(signalPickerDivideArithmetic, 'red', 1, 2);
     const additionHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(8, 3))
         .setSignal(1, 1, Signals.SignalInfo)
@@ -125,6 +126,7 @@ function generateNotes(
     blueprint: Blueprint,
     tracks: Track[]
 ): {
+    signalsPerCombinator: number,
     firstNoteSwitchDecider: DeciderCombinatorEntity,
     firstNoteKeyConstant: ConstantCombinatorEntity,
     firstNoteFilterDecider: DeciderCombinatorEntity,
@@ -132,6 +134,7 @@ function generateNotes(
     tracks = compressNotes(tracks);
 
     const output = {
+        signalsPerCombinator: findMaxSignalCountPerCombinator(tracks, UsableSignals.length),
         firstNoteSwitchDecider: undefined as unknown as DeciderCombinatorEntity,
         firstNoteKeyConstant: undefined as unknown as ConstantCombinatorEntity,
         firstNoteFilterDecider: undefined as unknown as DeciderCombinatorEntity,
@@ -139,7 +142,7 @@ function generateNotes(
 
     let previous: DeciderCombinatorEntity;
     const maxSignalsInTrack = tracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
-    for (let i = 0; i < Math.ceil(maxSignalsInTrack / SIGNALS_PER_COMBINATOR); i++) {
+    for (let i = 0; i < Math.ceil(maxSignalsInTrack / output.signalsPerCombinator); i++) {
         let current = blueprint.addEntity(new DeciderCombinatorEntity(4 - i, 2))
             .setDirection(Direction.Up)
             .setConditions(Signals.SignalCheck, i, '=', Signals.SignalEverything, true);
@@ -162,7 +165,7 @@ function generateNotes(
         track.notes
             .reduce((needed, note, i) => {
                 if (note > 0) {
-                    needed[i % SIGNALS_PER_COMBINATOR] = true;
+                    needed[i % output.signalsPerCombinator] = true;
                 }
                 return needed;
             }, [] as boolean[])
@@ -213,7 +216,7 @@ function generateNotes(
         for (let signalIndex = 0; signalIndex < track.notes.length; signalIndex++) {
             const signal = track.notes[signalIndex] ?? 0;
 
-            if (signalIndex % SIGNALS_PER_COMBINATOR === 0) {
+            if (signalIndex % output.signalsPerCombinator === 0) {
                 combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
                 const entity = blueprint.getEntityAt(5 - combinatorIndex, 4 + trackIndex - 1);
                 if (entity && typeof (entity as Entity & Connected)['addConnection'] === 'function') {
@@ -223,7 +226,7 @@ function generateNotes(
             }
             if (signal === 0) continue;
 
-            const keySignal = keyConstant.getSignal((signalIndex % SIGNALS_PER_COMBINATOR) + 1)!;
+            const keySignal = keyConstant.getSignal((signalIndex % output.signalsPerCombinator) + 1)!;
             const sig: Signal = { name: keySignal.name };
             if (keySignal.type) sig.type = keySignal.type;
 
@@ -255,4 +258,40 @@ function compressNotes(tracks: Track[]): Track[] {
     }
 
     return compressedTracks;
+}
+
+function findMaxSignalCountPerCombinator(compressedTracks: Track[], availableSignals: number): number {
+    const maxSignalsInTrack = compressedTracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
+
+    let maxSignals = Math.floor(availableSignals / compressedTracks.length);
+    if (maxSignalsInTrack <= maxSignals) {
+        return maxSignalsInTrack;
+    }
+
+    function doesConfigWork(tracks: Track[], maxSignals: number, availableSignals: number): boolean {
+        for (const track of tracks) {
+            const split: number[][] = [];
+            for (let i = 0; i < track.notes.length; i += maxSignals) {
+                split.push(track.notes.slice(i, i + maxSignals))
+            }
+
+            for (let note = 0; note < split[0].length; note++) {
+                for (let combinator = 0; combinator < split.length; combinator++) {
+                    if (split[combinator][note] > 0) {
+                        availableSignals--;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return availableSignals >= 0;
+    }
+
+    maxSignals = Math.min(maxSignalsInTrack, MAX_SIGNALS_PER_CONSTANT_COMBINATOR);
+    while (maxSignals > 1 && !doesConfigWork(compressedTracks, maxSignals, availableSignals)) {
+        maxSignals--;
+    }
+
+    return maxSignals;
 }

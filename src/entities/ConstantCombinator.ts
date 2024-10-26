@@ -10,6 +10,8 @@ type ConstantCombinatorFilter = {
     count: number;
 }
 
+export const MAX_SIGNALS_PER_CONSTANT_COMBINATOR = 1000;
+
 export class ConstantCombinatorEntity extends Entity implements Connected {
     name = 'constant-combinator';
     direction = Direction.Down;
