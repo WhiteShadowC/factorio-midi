@@ -173,7 +173,9 @@ function generateNotes(
                 ({ signal: unusedSignals.shift()!, count: i + 1, index: i + 1 })
             )
             .filter(f => f !== undefined)
-            .forEach(f => keyConstant.setSignal(f.index, f.count, f.signal));
+            .forEach(f => {
+                keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal)
+            });
 
         const filterHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(6, 4 + trackIndex));
         filterHelperConstant.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
@@ -226,7 +228,8 @@ function generateNotes(
             }
             if (signal === 0) continue;
 
-            const keySignal = keyConstant.getSignal((signalIndex % output.signalsPerCombinator) + 1)!;
+            const keySignal = keyConstant.getAllSignals()
+                .find(signal => signal.count === (signalIndex % output.signalsPerCombinator) + 1)!;
             const sig: Signal = { name: keySignal.name };
             if (keySignal.type) sig.type = keySignal.type;
 
