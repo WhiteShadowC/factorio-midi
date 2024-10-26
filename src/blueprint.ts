@@ -1,4 +1,4 @@
-import { Signals, Song, Track, UsableSignals } from './types';
+import { Signal, Signals, Song, Track, UsableSignals } from './types';
 import {
     ArithmeticCombinatorEntity,
     Blueprint,
@@ -215,8 +215,6 @@ function generateNotes(
 
             if (signalIndex % SIGNALS_PER_COMBINATOR === 0) {
                 combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
-                combinator.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
-                combinator.control_behavior.sections.sections[0].filters.forEach(f => f.count = 0);
                 const entity = blueprint.getEntityAt(5 - combinatorIndex, 4 + trackIndex - 1);
                 if (entity && typeof (entity as Entity & Connected)['addConnection'] === 'function') {
                     combinator.addConnection(entity as Entity & Connected, 'green', 1, 1);
@@ -225,8 +223,15 @@ function generateNotes(
             }
             if (signal === 0) continue;
 
-            const channelIndex = signalIndex % SIGNALS_PER_COMBINATOR;
-            combinator!.control_behavior.sections.sections[0].filters.find(f => f.index === channelIndex + 1)!.count = signal;
+            const keySignal = keyConstant.getSignal((signalIndex % SIGNALS_PER_COMBINATOR) + 1)!;
+            const sig: Signal = { name: keySignal.name };
+            if (keySignal.type) sig.type = keySignal.type;
+
+            combinator!.setSignal(
+                combinator!.getAllSignals().length + 1,
+                signal,
+                sig,
+            );
         }
     }
 
