@@ -47,14 +47,16 @@ export function generate(song: Song): Blueprint {
         .addConnection(loopDecider, 'red', 1, 2)
         .addConnection(tpnArithmetic, 'green', 1, 2);
 
+    const {
+        firstNoteSwitchDecider,
+        firstNoteKeyConstant,
+        firstNoteFilterDecider
+    } = generateNotes(blueprint, song.tracks);
     const noteLoadSwitcherArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(5, 2))
         .setDirection(Direction.Down)
-        .setConditions(Signals.SignalDot, 100, '/', Signals.SignalCheck)
-        .addConnection(noteTickArithmetic, 'red', 1, 2);
-    generateNotes(blueprint, song.tracks);
-    const firstNoteSwitchDecider = blueprint.getEntityAt(4, 2) as DeciderCombinatorEntity;
-    const firstNoteKeyConstant = blueprint.getEntityAt(5, 4) as ConstantCombinatorEntity;
-    const firstNoteFilterDecider = blueprint.getEntityAt(7, 4) as DeciderCombinatorEntity;
+        .setConditions(Signals.SignalDot, NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR, '/', Signals.SignalCheck)
+        .addConnection(noteTickArithmetic, 'red', 1, 2)
+        .addConnection(firstNoteSwitchDecider, 'red', 2, 1);
 
     const noteModuloArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(5, 0))
         .setDirection(Direction.Right)
@@ -119,18 +121,31 @@ export function generate(song: Song): Blueprint {
     return blueprint;
 }
 
-function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
-    let previous: Entity & Connected = blueprint.getEntityAt(5, 2) as ArithmeticCombinatorEntity;
+function generateNotes(
+    blueprint: Blueprint,
+    tracks: Track[]
+): {
+    firstNoteSwitchDecider: DeciderCombinatorEntity,
+    firstNoteKeyConstant: ConstantCombinatorEntity,
+    firstNoteFilterDecider: DeciderCombinatorEntity,
+} {
+    const output = {
+        firstNoteSwitchDecider: undefined as unknown as DeciderCombinatorEntity,
+        firstNoteKeyConstant: undefined as unknown as ConstantCombinatorEntity,
+        firstNoteFilterDecider: undefined as unknown as DeciderCombinatorEntity,
+    };
+
+    let previous: DeciderCombinatorEntity;
     const maxNotesInTrack = tracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
     for (let i = 0; i < Math.ceil(maxNotesInTrack / (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR)); i++) {
         let current = blueprint.addEntity(new DeciderCombinatorEntity(4 - i, 2))
             .setDirection(Direction.Up)
             .setConditions(Signals.SignalCheck, i, '=', Signals.SignalEverything, true);
         if (i === 0) {
-            current.addConnection(previous, 'red', 1, 2);
+            output.firstNoteSwitchDecider = current;
         } else {
-            current.addConnection(previous, 'red', 1, 1)
-                .addConnection(previous, 'green', 2, 2);
+            current.addConnection(previous!, 'red', 1, 1)
+                .addConnection(previous!, 'green', 2, 2);
         }
         previous = current;
     }
@@ -179,7 +194,10 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
         else if (track.instrument === Instrument.Square)
             speaker.setVolume(0.5);
 
-        if (trackIndex > 0) {
+        if (trackIndex === 0) {
+            output.firstNoteKeyConstant = keyConstant;
+            output.firstNoteFilterDecider = filterDecider;
+        } else {
             keyConstant.addConnection(previousKeyConstant!, 'green', 1, 1);
             filterDecider.addConnection(previousFilterDecider!, 'red', 1, 1);
         }
@@ -207,4 +225,6 @@ function generateNotes(blueprint: Blueprint, tracks: Track[]): void {
             combinator!.control_behavior.sections.sections[0].filters.find(f => f.index === channelIndex + 1)!.count += note << (noteIndex % NOTES_PER_SIGNAL * 6);
         }
     }
+
+    return output;
 }
