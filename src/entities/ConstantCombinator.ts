@@ -64,6 +64,17 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
         return this;
     }
 
+    getSignal(index: number): ConstantCombinatorFilter | null {
+        const filter = this.control_behavior.sections.sections[0].filters.find(f => f.index === index);
+        if (filter === undefined) return null;
+
+        return filter;
+    }
+
+    getAllSignals(): ConstantCombinatorFilter[] {
+        return this.control_behavior.sections.sections[0].filters;
+    }
+
     addConnection(
         entity: Entity & Connected,
         wire: 'red' | 'green',
