@@ -1,9 +1,10 @@
 export type Signal = {
   'type'?: 'recipe' | 'entity' | 'space-location' | 'fluid' | 'virtual' | 'quality';
   'name': string;
+  quality?: Quality
 };
 
-export type Quality = 'normal' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+export type Quality = 'normal' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type Position = {
   x: number;

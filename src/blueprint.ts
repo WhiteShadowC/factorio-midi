@@ -133,9 +133,17 @@ function generateNotes(
     firstNoteFilterDecider: DeciderCombinatorEntity,
 } {
     tracks = compressNotes(tracks);
+    let unusedSignals = structuredClone(UsableSignals)
+        .flatMap(signal => ([
+            { ...signal, quality: "legendary" },
+            { ...signal, quality: "epic" },
+            { ...signal, quality: "rare" },
+            { ...signal, quality: "uncommon" },
+            { ...signal, quality: "normal" },
+        ] as Signal[]));
 
     const output = {
-        signalsPerCombinator: findMaxSignalCountPerCombinator(tracks, UsableSignals.length),
+        signalsPerCombinator: findMaxSignalCountPerCombinator(tracks, unusedSignals.length),
         firstNoteSwitchDecider: undefined as unknown as DeciderCombinatorEntity,
         firstNoteKeyConstant: undefined as unknown as ConstantCombinatorEntity,
         firstNoteFilterDecider: undefined as unknown as DeciderCombinatorEntity,
@@ -156,7 +164,6 @@ function generateNotes(
         previous = current;
     }
 
-    let unusedSignals = structuredClone(UsableSignals);
     let previousKeyConstant: ConstantCombinatorEntity;
     let previousFilterDecider: DeciderCombinatorEntity;
     for (let trackIndex = 0; trackIndex < tracks.length; trackIndex++) {
@@ -175,7 +182,7 @@ function generateNotes(
             )
             .filter(f => f !== undefined)
             .forEach(f => {
-                keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal)
+                keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal, f.signal.quality)
             });
 
         const filterHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(6, 4 + trackIndex));
@@ -256,6 +263,7 @@ function generateNotes(
                 combinator.getAllSignals().length + 1,
                 signal,
                 sig,
+                keySignal.quality,
             );
         }
     }
