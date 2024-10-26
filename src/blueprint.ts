@@ -129,6 +129,8 @@ function generateNotes(
     firstNoteKeyConstant: ConstantCombinatorEntity,
     firstNoteFilterDecider: DeciderCombinatorEntity,
 } {
+    tracks = compressNotes(tracks);
+
     const output = {
         firstNoteSwitchDecider: undefined as unknown as DeciderCombinatorEntity,
         firstNoteKeyConstant: undefined as unknown as ConstantCombinatorEntity,
@@ -136,8 +138,8 @@ function generateNotes(
     };
 
     let previous: DeciderCombinatorEntity;
-    const maxNotesInTrack = tracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
-    for (let i = 0; i < Math.ceil(maxNotesInTrack / (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR)); i++) {
+    const maxSignalsInTrack = tracks.reduce((max, track) => Math.max(max, track.notes.length), 0);
+    for (let i = 0; i < Math.ceil(maxSignalsInTrack / SIGNALS_PER_COMBINATOR); i++) {
         let current = blueprint.addEntity(new DeciderCombinatorEntity(4 - i, 2))
             .setDirection(Direction.Up)
             .setConditions(Signals.SignalCheck, i, '=', Signals.SignalEverything, true);
@@ -158,13 +160,15 @@ function generateNotes(
 
         const keyConstant = blueprint.addEntity(new ConstantCombinatorEntity(5, 4 + trackIndex));
         track.notes
-            .reduce((a, note, i) => {
-                if (note !== 0) {
-                    a[Math.floor(i % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) / NOTES_PER_SIGNAL)] = true;
+            .reduce((needed, note, i) => {
+                if (note > 0) {
+                    needed[i % SIGNALS_PER_COMBINATOR] = true;
                 }
-                return a;
+                return needed;
             }, [] as boolean[])
-            .map((needed, i) => ({ signal: unusedSignals.shift()!, count: i + 1, index: i + 1 }))
+            .map((needed, i) =>
+                ({ signal: unusedSignals.shift()!, count: i + 1, index: i + 1 })
+            )
             .filter(f => f !== undefined)
             .forEach(f => keyConstant.setSignal(f.index, f.count, f.signal));
 
@@ -206,10 +210,10 @@ function generateNotes(
 
         let combinatorIndex = 1;
         let combinator: ConstantCombinatorEntity;
-        for (let noteIndex = 0; noteIndex < maxNotesInTrack; noteIndex++) {
-            const note = track.notes[noteIndex] ?? 0;
+        for (let signalIndex = 0; signalIndex < track.notes.length; signalIndex++) {
+            const signal = track.notes[signalIndex] ?? 0;
 
-            if (noteIndex % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) === 0) {
+            if (signalIndex % SIGNALS_PER_COMBINATOR === 0) {
                 combinator = blueprint.addEntity(new ConstantCombinatorEntity(5 - combinatorIndex, 4 + trackIndex));
                 combinator.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
                 combinator.control_behavior.sections.sections[0].filters.forEach(f => f.count = 0);
@@ -219,12 +223,31 @@ function generateNotes(
                 }
                 combinatorIndex++;
             }
-            if (note === 0) continue;
+            if (signal === 0) continue;
 
-            const channelIndex = Math.floor(noteIndex % (NOTES_PER_SIGNAL * SIGNALS_PER_COMBINATOR) / NOTES_PER_SIGNAL);
-            combinator!.control_behavior.sections.sections[0].filters.find(f => f.index === channelIndex + 1)!.count += note << (noteIndex % NOTES_PER_SIGNAL * 6);
+            const channelIndex = signalIndex % SIGNALS_PER_COMBINATOR;
+            combinator!.control_behavior.sections.sections[0].filters.find(f => f.index === channelIndex + 1)!.count = signal;
         }
     }
 
     return output;
+}
+
+function compressNotes(tracks: Track[]): Track[] {
+    const compressedTracks = [];
+
+    for (const track of tracks) {
+        const compressedTrack: Track = {
+            instrument: track.instrument,
+            notes: [],
+        }
+        for (let i = 0; i < track.notes.length; i++) {
+            if (Math.floor(i % NOTES_PER_SIGNAL) === 0)
+                compressedTrack.notes[Math.floor(i / NOTES_PER_SIGNAL)] = 0;
+            compressedTrack.notes[Math.floor(i / NOTES_PER_SIGNAL)] += track.notes[i] << (6 * (i % NOTES_PER_SIGNAL));
+        }
+        compressedTracks.push(compressedTrack);
+    }
+
+    return compressedTracks;
 }
