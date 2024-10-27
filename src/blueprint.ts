@@ -190,19 +190,18 @@ function generateNotes(
                 keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal, f.signal.quality)
             });
 
-        const filterHelperConstant = blueprint.addEntity(new ConstantCombinatorEntity(6, 4 + trackIndex));
-        filterHelperConstant.control_behavior.sections.sections[0].filters = structuredClone(keyConstant.control_behavior.sections.sections[0].filters);
-        filterHelperConstant.control_behavior.sections.sections[0].filters.forEach(f => f.count = -2147483648);
-
         const filterDecider = blueprint.addEntity(new DeciderCombinatorEntity(7, 4 + trackIndex))
             .setDirection(Direction.Right)
-            .setCondition(0, Signals.SignalEach, 0, '<')
-            .addOutput(Signals.SignalEach, true)
-            .addConnection(filterHelperConstant, 'green', 1, 1);
+            .setCondition(0, Signals.SignalInfo, 0, '=')
+            .setCondition(1, Signals.SignalInfo, 0, '≠');
+        keyConstant.getAllSignals().forEach(
+            signal =>
+                filterDecider.addOutput({ name: signal.name, type: signal.type, quality: signal.quality }, true)
+        )
 
-        const bitMaskArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(9, 4 + trackIndex))
+        const converterArithmetic = blueprint.addEntity(new ArithmeticCombinatorEntity(9, 4 + trackIndex))
             .setDirection(Direction.Right)
-            .setConditions(Signals.SignalEach, 0b00111111, 'AND', Signals.SignalCheck)
+            .setConditions(Signals.SignalEach, 0, '+', Signals.SignalCheck)
             .addConnection(filterDecider, 'red', 1, 2);
 
         const speaker = blueprint.addEntity(new ProgrammableSpeakerEntity(11, 4 + trackIndex))
@@ -211,7 +210,7 @@ function generateNotes(
             .setSignalValueIsPitch(true)
             .setFirstSignal(Signals.SignalCheck)
             .setInstrument(track.instrument)
-            .addConnection(bitMaskArithmetic, 'red', 1, 2);
+            .addConnection(converterArithmetic, 'red', 1, 2);
         if (track.instrument === Instrument.Sawtooth)
             speaker.setVolume(0.8);
         else if (track.instrument === Instrument.Square)
