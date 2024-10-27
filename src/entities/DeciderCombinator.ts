@@ -1,6 +1,19 @@
 import { Connected, Direction, Entity } from "./Blueprint.ts";
 import { Connection, Position, Signal } from "../types";
 
+type DeciderCombinatorCondition = {
+    first_signal: Signal | undefined,
+    second_signal: Signal | undefined,
+    constant: number | undefined,
+    comparator: Comparator,
+    compare_type: 'and' | undefined,
+}
+
+type DeciderCombinatorOutput = {
+    signal: Signal;
+    copy_count_from_input: boolean;
+}
+
 export type Comparator = '>' | '<' | '=' | '≥' | '≤' | '≠';
 
 export class DeciderCombinatorEntity extends Entity implements Connected {
@@ -8,12 +21,8 @@ export class DeciderCombinatorEntity extends Entity implements Connected {
     direction = Direction.Left;
     control_behavior = {
         decider_conditions: {
-            first_signal: undefined as Signal | undefined,
-            second_signal: undefined as Signal | undefined,
-            constant: 0 as number | undefined,
-            comparator: '<' as Comparator,
-            output_signal: undefined as Signal | undefined,
-            copy_count_from_input: true,
+            conditions: [] as DeciderCombinatorCondition[],
+            outputs: [] as DeciderCombinatorOutput[],
         }
     };
     connections = {
@@ -46,58 +55,58 @@ export class DeciderCombinatorEntity extends Entity implements Connected {
         return this;
     }
 
-    setConditions(
+    setCondition(
+        index: number,
         firstSignal: Signal | null,
         secondSignal: Signal | number,
         comparator: Comparator,
-        outputSignal: Signal | null,
-        copyCount: boolean
+        andPrevious: boolean = false,
     ): DeciderCombinatorEntity {
-        return this.setFirstSignal(firstSignal)
-            .setSecondSignal(secondSignal)
-            .setComparator(comparator)
-            .setOutputSignal(outputSignal)
-            .setCopyCount(copyCount);
-    }
+        const condition = {
+            comparator: comparator,
+        } as DeciderCombinatorCondition;
 
-    setFirstSignal(signal: Signal | null): DeciderCombinatorEntity {
-        if (signal === null)
-            delete this.control_behavior.decider_conditions.first_signal;
+        if (firstSignal !== null)
+            condition.first_signal = firstSignal;
+
+        if (typeof secondSignal === 'number')
+            condition.constant = secondSignal;
         else
-            this.control_behavior.decider_conditions.first_signal = signal;
+            condition.second_signal = secondSignal;
+
+        if (andPrevious)
+            condition.compare_type = 'and';
+
+
+        this.control_behavior.decider_conditions.conditions[index] = condition;
 
         return this;
     }
 
-    setSecondSignal(signal: Signal | number): DeciderCombinatorEntity {
-        if (typeof signal === 'number') {
-            this.control_behavior.decider_conditions.constant = signal;
-            delete this.control_behavior.decider_conditions.second_signal;
-        } else {
-            this.control_behavior.decider_conditions.second_signal = signal;
-            delete this.control_behavior.decider_conditions.constant;
-        }
+    addOutput(signal: Signal, copyCount: boolean): DeciderCombinatorEntity {
+        this.removeOutput(signal);
+
+        this.control_behavior.decider_conditions.outputs.push(
+            {
+                signal: signal,
+                copy_count_from_input: copyCount,
+            }
+        );
 
         return this;
     }
 
-    setComparator(comparator: Comparator): DeciderCombinatorEntity {
-        this.control_behavior.decider_conditions.comparator = comparator;
+    removeOutput(signal: Signal): DeciderCombinatorEntity {
+        const index = this.control_behavior.decider_conditions.outputs.findIndex(
+            output => {
+                return output.signal.name === signal.name
+                    && output.signal.type === signal.type
+                    && output.signal.quality === signal.quality;
+            }
+        );
 
-        return this;
-    }
-
-    setOutputSignal(signal: Signal | null): DeciderCombinatorEntity {
-        if (signal === null)
-            delete this.control_behavior.decider_conditions.output_signal;
-        else
-            this.control_behavior.decider_conditions.output_signal = signal;
-
-        return this;
-    }
-
-    setCopyCount(copyCount: boolean): DeciderCombinatorEntity {
-        this.control_behavior.decider_conditions.copy_count_from_input = copyCount;
+        if (index !== -1)
+            this.control_behavior.decider_conditions.outputs.splice(index, 1);
 
         return this;
     }
