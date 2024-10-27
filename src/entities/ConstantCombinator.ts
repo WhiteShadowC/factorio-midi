@@ -56,7 +56,7 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
         return this;
     }
 
-    setSignal(index: number, count: number, signal: Signal, quality: Quality = 'normal'): ConstantCombinatorEntity {
+    setSignal(index: number, count: number, signal: Signal): ConstantCombinatorEntity {
         if (index < 1) {
             throw new RangeError(`Supplied index (${index}) is out of bounds.`);
         }
@@ -78,7 +78,7 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
                 index: index,
                 type: signal.type,
                 name: signal.name,
-                quality: quality,
+                quality: signal.quality ?? 'normal',
                 comparator: '=',
                 count: count,
             } as ConstantCombinatorFilter);
@@ -86,7 +86,7 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
             if (signal.type) this.control_behavior.sections.sections[sectionIndex].filters[i].type = signal.type;
             else delete this.control_behavior.sections.sections[sectionIndex].filters[i].type;
             this.control_behavior.sections.sections[sectionIndex].filters[i].name = signal.name;
-            this.control_behavior.sections.sections[sectionIndex].filters[i].quality = quality;
+            this.control_behavior.sections.sections[sectionIndex].filters[i].quality = signal.quality ?? 'normal';
             this.control_behavior.sections.sections[sectionIndex].filters[i].count = count;
         }
 

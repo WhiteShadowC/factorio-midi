@@ -175,7 +175,7 @@ function generateNotes(
             )
             .filter(f => f !== undefined)
             .forEach(f => {
-                keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal, f.signal.quality)
+                keyConstant.setSignal(keyConstant.getAllSignals().length + 1, f.count, f.signal)
             });
 
         const filterDecider = blueprint.addEntity(new DeciderCombinatorEntity(5, 4 + trackIndex))
@@ -239,14 +239,15 @@ function generateNotes(
 
             const keySignal = keyConstant.getAllSignals()
                 .find(signal => signal.count === (signalIndex % output.signalsPerCombinator) + 1)!;
-            const sig: Signal = { name: keySignal.name };
-            if (keySignal.type) sig.type = keySignal.type;
 
             combinator.setSignal(
                 combinator.getAllSignals().length + 1,
                 signal,
-                sig,
-                keySignal.quality,
+                {
+                    type: keySignal.type,
+                    name: keySignal.name,
+                    quality: keySignal.quality,
+                },
             );
         }
     }
