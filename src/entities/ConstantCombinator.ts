@@ -1,6 +1,11 @@
 import { Connection, Quality, Signal } from "../types";
 import { Connected, Direction, Entity } from "./Blueprint.ts";
 
+type ConstantCombinatorSection = {
+    index: number;
+    filters: ConstantCombinatorFilter[];
+}
+
 type ConstantCombinatorFilter = {
     index: number;
     type: Signal['type'];
@@ -10,7 +15,7 @@ type ConstantCombinatorFilter = {
     count: number;
 }
 
-export const MAX_SIGNALS_PER_CONSTANT_COMBINATOR = 1000;
+const MAX_SIGNALS_PER_SECTION = 1000;
 
 export class ConstantCombinatorEntity extends Entity implements Connected {
     name = 'constant-combinator';
@@ -23,7 +28,7 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
                     index: 1,
                     filters: [] as ConstantCombinatorFilter[],
                 },
-            ],
+            ] as ConstantCombinatorSection[],
         },
     };
     player_description?: string;
@@ -56,9 +61,20 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
             throw new RangeError(`Supplied index (${index}) is out of bounds.`);
         }
 
-        let i = this.control_behavior.sections.sections[0].filters.findIndex(f => f.index === index);
+        const sectionIndex = Math.floor(--index / MAX_SIGNALS_PER_SECTION);
+        index %= MAX_SIGNALS_PER_SECTION;
+        index++;
+
+        if (this.control_behavior.sections.sections[sectionIndex] === undefined) {
+            this.control_behavior.sections.sections[sectionIndex] = {
+                index: sectionIndex + 1,
+                filters: [],
+            };
+        }
+
+        let i = this.control_behavior.sections.sections[sectionIndex].filters.findIndex(f => f.index === index);
         if (i === -1) {
-            this.control_behavior.sections.sections[0].filters.push({
+            this.control_behavior.sections.sections[sectionIndex].filters.push({
                 index: index,
                 type: signal.type,
                 name: signal.name,
@@ -67,25 +83,39 @@ export class ConstantCombinatorEntity extends Entity implements Connected {
                 count: count,
             } as ConstantCombinatorFilter);
         } else {
-            if (signal.type) this.control_behavior.sections.sections[0].filters[i].type = signal.type;
-            else delete this.control_behavior.sections.sections[0].filters[i].type;
-            this.control_behavior.sections.sections[0].filters[i].name = signal.name;
-            this.control_behavior.sections.sections[0].filters[i].quality = quality;
-            this.control_behavior.sections.sections[0].filters[i].count = count;
+            if (signal.type) this.control_behavior.sections.sections[sectionIndex].filters[i].type = signal.type;
+            else delete this.control_behavior.sections.sections[sectionIndex].filters[i].type;
+            this.control_behavior.sections.sections[sectionIndex].filters[i].name = signal.name;
+            this.control_behavior.sections.sections[sectionIndex].filters[i].quality = quality;
+            this.control_behavior.sections.sections[sectionIndex].filters[i].count = count;
         }
 
         return this;
     }
 
     getSignal(index: number): ConstantCombinatorFilter | null {
-        const filter = this.control_behavior.sections.sections[0].filters.find(f => f.index === index);
+        if (index < 1) {
+            throw new RangeError(`Supplied index (${index}) is out of bounds.`);
+        }
+
+        const sectionIndex = Math.floor(--index / MAX_SIGNALS_PER_SECTION);
+        index %= MAX_SIGNALS_PER_SECTION;
+        index++;
+
+        if (this.control_behavior.sections.sections[sectionIndex] === undefined)
+            return null;
+
+        const filter = this.control_behavior.sections.sections[sectionIndex].filters
+            .find(f => f.index === index);
         if (filter === undefined) return null;
 
         return filter;
     }
 
     getAllSignals(): ConstantCombinatorFilter[] {
-        return this.control_behavior.sections.sections[0].filters;
+        return this.control_behavior.sections.sections.flatMap(
+            section => section.filters
+        );
     }
 
     addConnection(

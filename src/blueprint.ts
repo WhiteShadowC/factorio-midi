@@ -8,7 +8,6 @@ import {
     Direction,
     Entity,
     Instrument,
-    MAX_SIGNALS_PER_CONSTANT_COMBINATOR,
     ProgrammableSpeakerEntity
 } from "./entities";
 
@@ -249,16 +248,6 @@ function generateNotes(
             }
             if (signal === 0) continue;
 
-            if (combinator.getAllSignals().length >= MAX_SIGNALS_PER_CONSTANT_COMBINATOR) {
-                combinator = blueprint.addEntity(
-                    new ConstantCombinatorEntity(
-                        Math.floor(combinator.position.x),
-                        Math.floor(combinator.position.y) + 1
-                    ),
-                )
-                    .addConnection(combinator, 'green', 1, 1);
-            }
-
             const keySignal = keyConstant.getAllSignals()
                 .find(signal => signal.count === (signalIndex % output.signalsPerCombinator) + 1)!;
             const sig: Signal = { name: keySignal.name };
@@ -323,7 +312,7 @@ function findMaxSignalCountPerCombinator(compressedTracks: Track[], availableSig
         return availableSignals >= 0;
     }
 
-    maxSignals = Math.min(maxSignalsInTrack, MAX_SIGNALS_PER_CONSTANT_COMBINATOR);
+    maxSignals = maxSignalsInTrack;
     while (maxSignals > 1 && !doesConfigWork(compressedTracks, maxSignals, availableSignals)) {
         maxSignals--;
     }
